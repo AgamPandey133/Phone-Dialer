@@ -3,46 +3,38 @@ package com.smartdialer.app.data.mapper
 import com.smartdialer.app.data.local.entity.CallLogEntity
 import com.smartdialer.app.data.local.entity.ContactEntity
 import com.smartdialer.app.domain.model.*
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.Types
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import org.json.JSONArray
+import org.json.JSONObject
 
 /**
  * Mappers between Room entities and domain models.
- * Keeps the data and domain layers cleanly separated.
+ * Uses org.json (built into Android) instead of Moshi reflection to avoid dependency issues.
  */
 object EntityMapper {
-
-    private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
-    private val phoneNumberListType = Types.newParameterizedType(List::class.java, Map::class.java)
-    private val stringListType = Types.newParameterizedType(List::class.java, String::class.java)
-    private val stringListAdapter = moshi.adapter<List<String>>(stringListType)
 
     // ---- Contact Mapping ----
 
     fun ContactEntity.toDomain(): Contact {
         val phoneNumbers = try {
-            val listType = Types.newParameterizedType(
-                List::class.java,
-                Map::class.java
-            )
-            val adapter = moshi.adapter<List<Map<String, String>>>(listType)
-            adapter.fromJson(phoneNumbersJson)?.map { map ->
+            val jsonArray = JSONArray(phoneNumbersJson)
+            (0 until jsonArray.length()).map { i ->
+                val obj = jsonArray.getJSONObject(i)
                 PhoneNumber(
-                    number = map["number"] ?: "",
+                    number = obj.optString("number", ""),
                     label = try {
-                        PhoneNumberLabel.valueOf(map["label"] ?: "MOBILE")
+                        PhoneNumberLabel.valueOf(obj.optString("label", "MOBILE"))
                     } catch (e: Exception) {
                         PhoneNumberLabel.MOBILE
                     }
                 )
-            } ?: emptyList()
+            }
         } catch (e: Exception) {
             emptyList()
         }
 
         val emails = try {
-            stringListAdapter.fromJson(emailsJson) ?: emptyList()
+            val jsonArray = JSONArray(emailsJson)
+            (0 until jsonArray.length()).map { i -> jsonArray.getString(i) }
         } catch (e: Exception) {
             emptyList()
         }
@@ -68,16 +60,22 @@ object EntityMapper {
 
     fun Contact.toEntity(): ContactEntity {
         val phoneNumbersJson = try {
-            val listData = phoneNumbers.map { mapOf("number" to it.number, "label" to it.label.name) }
-            val listType = Types.newParameterizedType(List::class.java, Map::class.java)
-            val adapter = moshi.adapter<List<Map<String, String>>>(listType)
-            adapter.toJson(listData)
+            val jsonArray = JSONArray()
+            phoneNumbers.forEach { phone ->
+                val obj = JSONObject()
+                obj.put("number", phone.number)
+                obj.put("label", phone.label.name)
+                jsonArray.put(obj)
+            }
+            jsonArray.toString()
         } catch (e: Exception) {
             "[]"
         }
 
         val emailsJson = try {
-            stringListAdapter.toJson(emails)
+            val jsonArray = JSONArray()
+            emails.forEach { jsonArray.put(it) }
+            jsonArray.toString()
         } catch (e: Exception) {
             "[]"
         }
