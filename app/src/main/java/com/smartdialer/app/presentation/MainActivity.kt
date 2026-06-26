@@ -15,8 +15,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val viewModel: MainViewModel = androidx.hilt.navigation.compose.hiltViewModel()
             SmartDialerTheme {
-                MainScreen()
+                PermissionGate {
+                    // Trigger sync once permissions are granted
+                    androidx.compose.runtime.LaunchedEffect(Unit) {
+                        viewModel.initialSync()
+                    }
+                    MainScreen()
+                }
             }
         }
     }

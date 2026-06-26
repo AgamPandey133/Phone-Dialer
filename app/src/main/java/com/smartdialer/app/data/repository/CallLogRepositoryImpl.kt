@@ -1,5 +1,6 @@
 package com.smartdialer.app.data.repository
 
+import com.smartdialer.app.data.device.DeviceDataSource
 import com.smartdialer.app.data.local.dao.CallLogDao
 import com.smartdialer.app.data.mapper.EntityMapper.toDomain
 import com.smartdialer.app.domain.model.CallLogEntry
@@ -7,15 +8,19 @@ import com.smartdialer.app.domain.model.CallType
 import com.smartdialer.app.domain.model.GroupedCallLog
 import com.smartdialer.app.domain.repository.CallLogRepository
 import com.smartdialer.app.domain.repository.CallStatistics
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
  * Implementation of [CallLogRepository] backed by Room database.
+ * Syncs from the device CallLog provider on demand.
  */
 class CallLogRepositoryImpl @Inject constructor(
-    private val callLogDao: CallLogDao
+    private val callLogDao: CallLogDao,
+    private val deviceDataSource: DeviceDataSource
 ) : CallLogRepository {
 
     override fun getAllCallLogs(): Flow<List<CallLogEntry>> {
@@ -85,7 +90,7 @@ class CallLogRepositoryImpl @Inject constructor(
             totalMissed = missed,
             averageDurationSeconds = avgDuration,
             longestCallSeconds = longestCall,
-            callsByDayOfWeek = emptyMap(), // TODO: Implement with raw query
+            callsByDayOfWeek = emptyMap(),
             callsByHour = emptyMap(),
             topContacts = topContacts,
             callsByCategory = emptyMap()
@@ -93,6 +98,10 @@ class CallLogRepositoryImpl @Inject constructor(
     }
 
     override suspend fun syncFromDevice() {
-        // TODO: Phase 2 - Read from device CallLog ContentProvider
+        withContext(Dispatchers.IO) {
+            val deviceCallLogs = deviceDataSource.getDeviceCallLogs()
+            callLogDao.deleteAllCallLogs()
+            callLogDao.insertCallLogs(deviceCallLogs)
+        }
     }
 }
