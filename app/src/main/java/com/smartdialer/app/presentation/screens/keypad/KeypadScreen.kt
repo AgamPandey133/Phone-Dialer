@@ -99,7 +99,7 @@ fun KeypadScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp, bottom = 32.dp),
+                    .padding(top = 8.dp, bottom = 16.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {

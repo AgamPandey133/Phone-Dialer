@@ -102,7 +102,7 @@ fun MainScreen() {
     ) { innerPadding ->
         SmartDialerNavHost(
             navController = navController,
-            // Pass padding down if needed, currently not taking parameter in SmartDialerNavHost
+            modifier = Modifier.padding(innerPadding)
         )
     }
 }

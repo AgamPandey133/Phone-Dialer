@@ -21,10 +21,12 @@ import com.smartdialer.app.presentation.screens.recent.RecentCallsScreen
 @Composable
 fun SmartDialerNavHost(
     navController: NavHostController,
+    modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier,
     startDestination: String = Screen.Keypad.route
 ) {
     NavHost(
         navController = navController,
+        modifier = modifier,
         startDestination = startDestination,
         enterTransition = {
             fadeIn(animationSpec = tween(300)) + slideInHorizontally(
