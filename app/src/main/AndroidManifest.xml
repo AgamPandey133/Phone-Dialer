@@ -68,20 +68,28 @@
                 <action android:name="android.intent.action.DIAL" />
                 <data android:scheme="tel" />
                 <category android:name="android.intent.category.DEFAULT" />
+            <!-- Required intent filters to be an eligible dialer -->
+            <intent-filter>
+                <action android:name="android.intent.action.DIAL" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="tel" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.DIAL" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <data android:scheme="tel" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-            </intent-filter>
         </activity>
 
-        <!-- InCallService for handling active calls -->
+        <!-- Call Activity (Full screen UI for active/incoming calls) -->
+        <activity
+            android:name=".presentation.CallActivity"
+            android:exported="false"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.SmartDialer" />
+
+        <!-- InCallService for handling calls -->
         <service
             android:name=".service.SmartDialerCallService"
             android:permission="android.permission.BIND_INCALL_SERVICE"
@@ -94,16 +102,6 @@
             </intent-filter>
         </service>
 
-        <!-- Call Broadcast Receiver -->
-        <receiver
-            android:name=".receiver.CallReceiver"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.PHONE_STATE" />
-            </intent-filter>
-        </receiver>
-
-        <!-- Boot Receiver for reminders -->
         <receiver
             android:name=".receiver.BootReceiver"
             android:exported="true">

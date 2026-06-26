@@ -13,15 +13,35 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 
+import android.app.role.RoleManager
+import android.content.Context
+import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+
 /**
- * Wraps the main content and gates it behind runtime permissions.
- * Shows a friendly permission request screen if permissions are not granted.
+ * Wraps the main content and gates it behind runtime permissions and default dialer role.
+ * Shows a friendly permission request screen if requirements are not met.
  */
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun PermissionGate(
     onPermissionsGranted: @Composable () -> Unit
 ) {
+    val context = LocalContext.current
+    val roleManager = context.getSystemService(Context.ROLE_SERVICE) as RoleManager
+
+    var isDefaultDialer by remember {
+        mutableStateOf(roleManager.isRoleHeld(RoleManager.ROLE_DIALER))
+    }
+
+    val roleLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) {
+        isDefaultDialer = roleManager.isRoleHeld(RoleManager.ROLE_DIALER)
+    }
+
     val permissions = buildList {
         add(Manifest.permission.READ_CONTACTS)
         add(Manifest.permission.WRITE_CONTACTS)
@@ -37,7 +57,7 @@ fun PermissionGate(
 
     val permissionState = rememberMultiplePermissionsState(permissions)
 
-    if (permissionState.allPermissionsGranted) {
+    if (permissionState.allPermissionsGranted && isDefaultDialer) {
         onPermissionsGranted()
     } else {
         // Permission request UI
@@ -70,7 +90,7 @@ fun PermissionGate(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "To make calls, show your contacts, and display call history, we need access to your phone, contacts, and call logs.",
+                    text = "To make calls and act as your phone app, we need to be set as the default dialer and have access to your contacts.",
                     style = MaterialTheme.typography.bodyLarge,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
@@ -79,14 +99,21 @@ fun PermissionGate(
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Button(
-                    onClick = { permissionState.launchMultiplePermissionRequest() },
+                    onClick = {
+                        if (!permissionState.allPermissionsGranted) {
+                            permissionState.launchMultiplePermissionRequest()
+                        } else if (!isDefaultDialer) {
+                            val intent = roleManager.createRequestRoleIntent(RoleManager.ROLE_DIALER)
+                            roleLauncher.launch(intent)
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
                     shape = MaterialTheme.shapes.large
                 ) {
                     Text(
-                        "Grant Permissions",
+                        text = if (!permissionState.allPermissionsGranted) "Grant Permissions" else "Set as Default Dialer",
                         style = MaterialTheme.typography.titleMedium
                     )
                 }

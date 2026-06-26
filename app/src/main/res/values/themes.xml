@@ -6,4 +6,9 @@
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">true</item>
     </style>
+
+    <!-- Splash screen theme extends base theme with a splash background -->
+    <style name="Theme.SmartDialer.Splash" parent="Theme.SmartDialer">
+        <item name="android:windowBackground">@drawable/ic_launcher_background</item>
+    </style>
 </resources>
