@@ -75,9 +75,9 @@ fun CallScreen(
             )
 
             // Contact Company or Note if exists
-            if (contact?.company?.isNotBlank() == true) {
+            contact?.company?.takeIf { it.isNotBlank() }?.let { company ->
                 Text(
-                    text = contact!!.company,
+                    text = company,
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
