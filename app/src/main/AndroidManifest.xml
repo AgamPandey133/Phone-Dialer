@@ -63,11 +63,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Intent filter to handle DIAL intents (becoming default dialer) -->
-            <intent-filter>
-                <action android:name="android.intent.action.DIAL" />
-                <data android:scheme="tel" />
-                <category android:name="android.intent.category.DEFAULT" />
             <!-- Required intent filters to be an eligible dialer -->
             <intent-filter>
                 <action android:name="android.intent.action.DIAL" />
