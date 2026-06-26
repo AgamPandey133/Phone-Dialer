@@ -6,7 +6,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.smartdialer.app.data.local.dao.CallLogDao
 import com.smartdialer.app.data.local.dao.ContactDao
-import com.smartdialer.app.data.local.dao.NoteAndReminderDao
+import com.smartdialer.app.data.local.dao.NoteDao
 import com.smartdialer.app.data.remote.*
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -19,7 +19,7 @@ class SyncWorker @AssistedInject constructor(
     private val api: SmartDialerApi,
     private val contactDao: ContactDao,
     private val callLogDao: CallLogDao,
-    private val noteDao: NoteAndReminderDao
+    private val noteDao: NoteDao
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
